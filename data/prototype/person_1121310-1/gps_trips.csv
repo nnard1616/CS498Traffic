@@ -1,0 +1,3 @@
+sampno,perno,gpstripid,gpstravdayid,gpstravdaytripid,start_time,end_time,duration_min,distance_miles,avg_speed_mph,max_speed_mph,travel_mode,nbstages,travmodelist,numuniqmodes,uniqmodelist,distfromlastdest,gaptime,tripareatype,workrelated,no_transport,onsite,looptrip,origin_loc_type,destination_loc_type
+1121310,1,1,1,1,2012-02-02 07:36:42,2012-02-02 07:51:14,14.529999,4.1128,22.580188,46.6,5,1,5,1,5,,5.17,1,0,0,0,0,HOME,OTHER
+1121310,1,2,1,2,2012-02-02 07:56:24,2012-02-02 08:46:59,50.580001,21.8024,27.44171,70.2,5,1,5,1,5,308.837854,0.0,1,0,0,0,0,OTHER,WORK
