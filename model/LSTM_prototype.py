@@ -56,10 +56,26 @@ def build_seq(input_df, unique_trips):
 
     return {'x': x, 'y': y}
 
-def build_model():
+def build_model(layer_units=[128], 
+                dropout=True,
+                dropout_level=0.5,
+                gpu=False,
+                seq_len=SEQ_LEN,
+                num_classes=NUM_CLASSES):
+
+    assert len(layer_units) > 0, 'Must include at least 1 layer'
+
     model = Sequential()
-    model.add(LSTM(32, input_shape=(1,SEQ_LEN)))
-    model.add(Dense(NUM_CLASSES))
+    for i, units in enumerate(layer_units):
+        if gpu:
+            layer = CuDNNLSTM(units, input_shape=(1,seq_len))
+        else:
+            layer = LSTM(units, input_shape=(1,seq_len))
+        model.add(layer)
+        if dropout and (i != len(layer_units)-1):
+            model.add(Dropout(dropout_level))
+
+    model.add(Dense(num_classes))
     model.add(Activation('softmax'))
 
     optimizer = RMSprop(lr=0.0001)
