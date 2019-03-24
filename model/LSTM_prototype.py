@@ -13,13 +13,7 @@ from sklearn.model_selection import train_test_split
 #Global configuration variables
 SEQ_LEN = 50
 SEQ_STRIDE = 1
-
-def get_callbacks(filepath, patience=2):
-    es = EarlyStopping('val_loss', patience=patience, mode="min")
-    msave = ModelCheckpoint(filepath, save_best_only=True)
-    return [es, msave]
-file_path = 'saved_models/lstm_weights.h5'
-callbacks = get_callbacks(filepath=file_path, patience=5)
+NUM_CLASSES = 30
 
 def process_file(trip_file, gps_file):
     trip_df = pd.read_csv(trip_file)
@@ -38,7 +32,7 @@ def process_file(trip_file, gps_file):
     return {'df': merged_df, 'unique_trips': unique_trips}
 
 def build_seq(input_df, unique_trips):
-    global SEQ_LEN, SEQ_STRIDE
+    global SEQ_LEN, SEQ_STRIDE, NUM_CLASSES
 
     x = np.ndarray([1,SEQ_LEN])
     y = np.ndarray([1,1], dtype=int)
@@ -58,14 +52,14 @@ def build_seq(input_df, unique_trips):
     x = np.delete(x, 0, axis=0)
     y = np.delete(y, 0, axis=0)
     x = np.reshape(x, (x.shape[0], 1, x.shape[1]))
-    y = keras.utils.to_categorical(y, num_classes=6)
+    y = keras.utils.to_categorical(y, num_classes=NUM_CLASSES)
 
     return {'x': x, 'y': y}
 
 def build_model():
     model = Sequential()
     model.add(LSTM(32, input_shape=(1,SEQ_LEN)))
-    model.add(Dense(6))
+    model.add(Dense(NUM_CLASSES))
     model.add(Activation('softmax'))
 
     optimizer = RMSprop(lr=0.0001)
@@ -77,13 +71,31 @@ def main():
     trip_files = glob.glob('../data/prototype/**/gps_trips.csv')
 
     file_results = process_file(trip_file = trip_files[0], gps_file = gps_files[0])
-    data = build_seq(input_df = file_results['df'], unique_trips = file_results['unique_trips'])
+    seq_results = build_seq(input_df = file_results['df'], unique_trips = file_results['unique_trips'])
 
-    x_train, x_val, y_train, y_val = train_test_split(data['x'], data['y'], random_state=1, train_size=0.8)
+    X = seq_results['x']
+    y = seq_results['y']
+
+    print('Bulding training data from files..')
+    for i in range(1, len(gps_files)):
+        file_results = process_file(trip_file = trip_files[i], gps_file = gps_files[i])
+        seq_results = build_seq(input_df = file_results['df'], unique_trips = file_results['unique_trips'])
+
+        X = np.vstack((X, seq_results['x']))
+        y = np.vstack((y, seq_results['y']))
+
+    x_train, x_val, y_train, y_val = train_test_split(X, y, random_state=1, train_size=0.8)
 
     model = build_model()
 
-    model.fit(x_train, y_train, epochs=20, validation_data=(x_val, y_val))
+    model.fit(x_train, y_train, epochs=5, validation_data=(x_val, y_val))
+
+    y_pred = model.predict(x_val)
+
+    acc = sum(np.argmax(y_pred, axis=1) == np.argmax(y_val, axis=1)) / y_pred.shape[0]
+
+    print("Validation Accuracy: {number:.{digits}f}%".format(number=(acc*100), digits=2))
+
 
 if __name__ == '__main__':
     main()
