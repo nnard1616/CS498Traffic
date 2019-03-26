@@ -115,14 +115,14 @@ def main():
 
     spark_model = SparkModel(model, frequency='epoch', mode='asynchronous')
 
-    spark_model.fit(rdd, epochs=20, batch_size=32, verbose=0, validation_split=0.1)
+    spark_model.fit(rdd, epochs=5, batch_size=32, verbose=0, validation_split=0.1)
 #    model.fit(x_train, y_train, epochs=5, validation_data=(x_val, y_val))
 
-#    y_pred = model.predict(x_val)
+    y_pred = spark_model.predict(x_val)
 
-#    acc = sum(np.argmax(y_pred, axis=1) == np.argmax(y_val, axis=1)) / y_pred.shape[0]
+    acc = sum(np.argmax(y_pred, axis=1) == np.argmax(y_val, axis=1)) / y_pred.shape[0]
 
-#    print("Validation Accuracy: {number:.{digits}f}%".format(number=(acc*100), digits=2))
+    print("Validation Accuracy: {number:.{digits}f}%".format(number=(acc*100), digits=2))
 
 
 if __name__ == '__main__':
