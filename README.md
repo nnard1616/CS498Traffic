@@ -2,4 +2,4 @@
 CS 498 Group Project
 
 ### Running Model on Spark
- - `spark-submit --driver-memory 1G ./LSTM_spark.py`
+ - `PYSPARK_PYTHON=python3 PYSPARK_DRIVER_PYTHON=python3 spark-submit --driver-memory 15G ./Random_Forest.py`
